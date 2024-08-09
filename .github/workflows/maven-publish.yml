@@ -4,15 +4,13 @@
 name: Maven Release
 
 on:
-  release:
+  pull_request:
     types: [closed]
-    paths:
-      - '.github/project.yml'
 
 jobs:
-  build:
-
+  release:
     runs-on: ubuntu-latest
+    name: release
     permissions:
       contents: read
       packages: write
@@ -24,6 +22,8 @@ jobs:
       with:
         java-version: '8'
         distribution: 'temurin'
+        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Set up Apache Maven Central
       uses: actions/setup-java@v4
@@ -37,9 +37,10 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Publish to Apache Maven Central
-      run: mvn deploy
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        GITHUB_TOKEN: ${{ github.token }}
 
