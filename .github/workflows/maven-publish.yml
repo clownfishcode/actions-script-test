@@ -49,7 +49,7 @@ jobs:
         if [[ "$title" =~ ^release-$version$ ]]; then
           echo "Pull Request title is valid."
         else
-          echo "Pull Request title must be in the format 'release-[any-text]-$version'."
+          echo "Pull Request title must be in the format 'release-$version'."
           exit 1
         fi
 
