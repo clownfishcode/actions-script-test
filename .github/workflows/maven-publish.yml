@@ -29,7 +29,7 @@ jobs:
       - name: Extract Version from POM
         id: extract-version
         run: |          # 从 pom.xml 文件中提取版本号
-          version=$(grep -oP '(?<=<version>)[^<]+' pom.xml)
+          version=$(grep -oP '(?<=<version>)[^<]+' pom.xml | head -n 1)
           echo "Version from POM: $version"
           echo "pom_version=$version" >> $GITHUB_OUTPUT
 
