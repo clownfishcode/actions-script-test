@@ -29,13 +29,9 @@ jobs:
     - name: Read Pull Request Title
       id: pr-title
       run: |
-        pr-title="${{ github.event.pull_request.title }}"
-        if [[ "pr-title" =~ ^release.* ]]; then
-          echo "PR title starts with 'release'"
-        else
-          echo "PR title does not start with 'release'"
-          exit 1
-        fi
+        title=$(jq -r '.pull_request.title' $GITHUB_EVENT_PATH)
+        echo "Pull Request Title: $title"
+        echo "pr_title=$title" >> $GITHUB_OUTPUT
 
     - name: Extract Version from POM
       id: extract-version
