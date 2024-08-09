@@ -34,7 +34,6 @@
 
     <properties>
         <java.version>8</java.version>
-        <skipPublishing>true</skipPublishing>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <java.source.version>${java.version}</java.source.version>
@@ -125,7 +124,6 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
-                    <skipPublishing>${skipPublishing}</skipPublishing>
                 </configuration>
             </plugin>
         </plugins>
