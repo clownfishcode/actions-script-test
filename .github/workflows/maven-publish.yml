@@ -22,14 +22,23 @@ jobs:
       with:
         java-version: '8'
         distribution: 'temurin'
+
+    - name: Set up Github packages
+      uses: actions/setup-java@v4
+      with: # running setup-java again overwrites the settings.xml
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+    - name: Publish to Github packages
+      run: mvn deploy -B -Dmaven.gpg.skip=true -Dcentral-publishing.skip=true
+      env:
+        MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+        MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Set up Apache Maven Central
       uses: actions/setup-java@v4
       with: # running setup-java again overwrites the settings.xml
-        distribution: 'temurin'
-        java-version: '11'
         server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
         server-username: MAVEN_USERNAME # env variable for username in deploy
         server-password: MAVEN_CENTRAL_TOKEN # env variable for token in deploy
@@ -37,10 +46,12 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Publish to Apache Maven Central
-      run: mvn deploy -B -X
+      run: mvn deploy -B
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         GITHUB_TOKEN: ${{ github.token }}
+
+
 
