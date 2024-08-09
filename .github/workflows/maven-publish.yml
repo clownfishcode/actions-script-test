@@ -45,6 +45,7 @@ jobs:
         title="${{ steps.pr-title.outputs.pr_title }}"
         version="${{ steps.extract-version.outputs.pom_version }}"
         
+        
         # 验证 Pull Request 标题
         if [[ "$title" =~ ^release-$version$ ]]; then
           echo "Pull Request title is valid."
