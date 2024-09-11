@@ -25,10 +25,11 @@ jobs:
       id: pr-title
       run: |
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
-        pr_body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+        body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
         echo "Pull Request Title: $title"
+        echo "Pull Request Body: $body"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
-        echo "pr_body=$pr_body" >> $GITHUB_OUTPUT
+        echo "pr_body=$body" >> $GITHUB_OUTPUT
 
     - name: Extract info from pom.xml
       id: extract-info
