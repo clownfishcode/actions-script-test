@@ -34,17 +34,43 @@ jobs:
         echo "Pull Request Title: $title"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
 
-    - name: Extract version from pom.xml
-      id: extract-version
+    - name: Extract info from pom.xml
+      id: extract-info
       run: |        
+        groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+        artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
         version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "Pom GroupId: $groupId"
+        echo "Pom ArtifactId: $artifactId"
         echo "Pom Version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
+        echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
+        echo "group_id=$groupId" >> $GITHUB_OUTPUT
+
+    - name: Check Maven Central Repository
+      id: check-maven-central
+      run: |
+        URL=https://repo1.maven.org/maven2/${GROUP_ID//\./\//}/${ARTIFACT_ID}/maven-metadata.xml
+        version="${{ steps.extract-info.outputs.version }}"
+        groupId="${{ steps.extract-info.outputs.group_id }}"
+        artifactId="${{ steps.extract-info.outputs.artifactId }}"
+        
+         # 下载 maven-metadata.xml 文件
+        curl -sSL "$URL" | \
+        # 查找版本号
+        grep "<version>$version</version>" > /dev/null
+        
+        if [ $? -eq 0 ]; then
+          echo "Version $version exists in Maven Central."
+          exit 1
+        else
+          echo "Version $version does not exist in Maven Central."
+        fi
 
     - name: Validate Pull Request Title
       run: |          # 读取 Pull Request 标题和版本号
         title="${{ steps.pr-title.outputs.pr_title }}"
-        version="${{ steps.extract-version.outputs.version }}"
+        version="${{ steps.extract-info.outputs.version }}"
         
         # 转换为小写并进行条件判断
         if [[ "${title,,}" =~ ^release-$version$ ]]; then
