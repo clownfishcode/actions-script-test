@@ -71,7 +71,7 @@ jobs:
 
     - name: Validate Pull Request Title
       run: |          # 读取 Pull Request 标题和版本号
-        title="${{ steps.pr-title.outputs.title }}"
+        title="${{ steps.pr-title.outputs.pr_title }}"
         version="${{ steps.extract-info.outputs.version }}"
         echo "Pull Request Title: $title"
         echo "Version: $version"
