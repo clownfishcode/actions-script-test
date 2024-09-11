@@ -25,8 +25,10 @@ jobs:
       id: pr-title
       run: |
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
+        pr_body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
         echo "Pull Request Title: $title"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
+        echo "pr_body=$pr_body" >> $GITHUB_OUTPUT
 
     - name: Extract info from pom.xml
       id: extract-info
@@ -41,48 +43,48 @@ jobs:
         echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
         echo "groupId=$groupId" >> $GITHUB_OUTPUT
 
-    - name: Check Maven Central Repository
-      id: check-maven-central
-      run: |
-        version="${{ steps.extract-info.outputs.version }}"
-        groupId="${{ steps.extract-info.outputs.groupId }}"
-        artifactId="${{ steps.extract-info.outputs.artifactId }}"
-        URL=https://repo1.maven.org/maven2/$(echo $groupId | tr . /)/${artifactId}/maven-metadata.xml
-        echo $URL
-        
-        # 检查 URL 是否存在
-        RESPONSE_CODE=$(curl -sSL -o /dev/null -w "%{http_code}" "$URL")
-        echo $RESPONSE_CODE
-        
-        if [ "$RESPONSE_CODE" == "200" ]; then
-          # 文件存在，继续检查版本
-          RESPONSE=$(curl -sSL "$URL")
-          if echo "$RESPONSE" | grep "<version>$version</version>" > /dev/null; then
-            echo "Version $version exists in Maven Central."
-            exit 1
-          else
-            echo "Version $version does not exist in Maven Central."
-          fi
-        elif [ "$RESPONSE_CODE" == "404" ]; then
-          echo "The metadata file for $groupId:$artifactId does not exist in Maven Central."
-        else
-          echo "An unexpected error occurred while checking the metadata file for $groupId:$artifactId."
-        fi
-
-    - name: Validate Pull Request Title
-      run: |          # 读取 Pull Request 标题和版本号
-        title="${{ steps.pr-title.outputs.pr_title }}"
-        version="${{ steps.extract-info.outputs.version }}"
-        echo "Pull Request Title: $title"
-        echo "Version: $version"
-        # 转换为小写并进行条件判断
-        if [[ "${title,,}" =~ ^release-$version$ ]]; then
-          echo "Pull Request title is valid."
-        else
-          echo "Pull Request title must be in the format 'release-$version'."
-          exit 1
-        fi
+#    - name: Check Maven Central Repository
+#      id: check-maven-central
+#      run: |
+#        version="${{ steps.extract-info.outputs.version }}"
+#        groupId="${{ steps.extract-info.outputs.groupId }}"
+#        artifactId="${{ steps.extract-info.outputs.artifactId }}"
+#        URL=https://repo1.maven.org/maven2/$(echo $groupId | tr . /)/${artifactId}/maven-metadata.xml
+#        echo $URL
 #
+#        # 检查 URL 是否存在
+#        RESPONSE_CODE=$(curl -sSL -o /dev/null -w "%{http_code}" "$URL")
+#        echo $RESPONSE_CODE
+#
+#        if [ "$RESPONSE_CODE" == "200" ]; then
+#          # 文件存在，继续检查版本
+#          RESPONSE=$(curl -sSL "$URL")
+#          if echo "$RESPONSE" | grep "<version>$version</version>" > /dev/null; then
+#            echo "Version $version exists in Maven Central."
+#            exit 1
+#          else
+#            echo "Version $version does not exist in Maven Central."
+#          fi
+#        elif [ "$RESPONSE_CODE" == "404" ]; then
+#          echo "The metadata file for $groupId:$artifactId does not exist in Maven Central."
+#        else
+#          echo "An unexpected error occurred while checking the metadata file for $groupId:$artifactId."
+#        fi
+#
+#    - name: Validate Pull Request Title
+#      run: |          # 读取 Pull Request 标题和版本号
+#        title="${{ steps.pr-title.outputs.pr_title }}"
+#        version="${{ steps.extract-info.outputs.version }}"
+#        echo "Pull Request Title: $title"
+#        echo "Version: $version"
+#        # 转换为小写并进行条件判断
+#        if [[ "${title,,}" =~ ^release-$version$ ]]; then
+#          echo "Pull Request title is valid."
+#        else
+#          echo "Pull Request title must be in the format 'release-$version'."
+#          exit 1
+#        fi
+
 #    - name: Set up Maven Central Repository
 #      uses: actions/setup-java@v4
 #      with: # running setup-java again overwrites the settings.xml
@@ -100,6 +102,30 @@ jobs:
 #        MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
 #        MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 #        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-#
-#
-#
+
+    - name: Create Git Tag
+      if: success()
+      run: |        
+        mvn versions:set -DnewVersion=v${{ steps.extract-info.outputs.version }}
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git tag -a v${{ steps.extract-info.outputs.version }} -m "Release version v${{ steps.extract-info.outputs.version }}"
+        git push origin v${{ steps.extract-info.outputs.version }}
+
+    - name: Create Release
+      if: success()
+      id: create-release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.extract-info.outputs.version }}
+        name: Release v${{ steps.extract-info.outputs.version }}
+        body: |          ## Changelog
+          ${{ steps.pr-title.outputs.pr_body }}
+        draft: false
+        prerelease: false
+
+
+
+
