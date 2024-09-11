@@ -39,13 +39,13 @@ jobs:
         echo "Pom Version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
         echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
-        echo "group_id=$groupId" >> $GITHUB_OUTPUT
+        echo "groupId=$groupId" >> $GITHUB_OUTPUT
 
     - name: Check Maven Central Repository
       id: check-maven-central
       run: |
         version="${{ steps.extract-info.outputs.version }}"
-        groupId="${{ steps.extract-info.outputs.group_id }}"
+        groupId="${{ steps.extract-info.outputs.groupId }}"
         artifactId="${{ steps.extract-info.outputs.artifactId }}"
         URL=https://repo1.maven.org/maven2/$(echo $groupId | tr . /)/${artifactId}/maven-metadata.xml
         echo $URL
@@ -71,9 +71,10 @@ jobs:
 
     - name: Validate Pull Request Title
       run: |          # 读取 Pull Request 标题和版本号
-        title="${{ steps.pr-title.outputs.pr_title }}"
+        title="${{ steps.pr-title.outputs.title }}"
         version="${{ steps.extract-info.outputs.version }}"
-        
+        echo "Pull Request Title: $title"
+        echo "Version: $version"
         # 转换为小写并进行条件判断
         if [[ "${title,,}" =~ ^release-$version$ ]]; then
           echo "Pull Request title is valid."
