@@ -25,11 +25,8 @@ jobs:
       id: pr-title
       run: |
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
-        body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
         echo "Pull Request Title: $title"
-        echo "Pull Request Body: $body"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
-        echo "pr_body=$body" >> $GITHUB_OUTPUT
 
     - name: Extract info from pom.xml
       id: extract-info
@@ -123,7 +120,7 @@ jobs:
         tag_name: v${{ steps.extract-info.outputs.version }}
         name: Release v${{ steps.extract-info.outputs.version }}
         body: |          ## Changelog
-          ${{ steps.pr-title.outputs.pr_body }}
+          $(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
         draft: false
         prerelease: false
 
