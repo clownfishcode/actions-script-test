@@ -50,10 +50,10 @@ jobs:
     - name: Check Maven Central Repository
       id: check-maven-central
       run: |
-        URL=https://repo1.maven.org/maven2/${GROUP_ID//\./\//}/${ARTIFACT_ID}/maven-metadata.xml
         version="${{ steps.extract-info.outputs.version }}"
         groupId="${{ steps.extract-info.outputs.group_id }}"
         artifactId="${{ steps.extract-info.outputs.artifactId }}"
+        URL=https://repo1.maven.org/maven2/${groupId//\./\//}/${artifactId}/maven-metadata.xml
         
          # 下载 maven-metadata.xml 文件
         curl -sSL "$URL" | \
