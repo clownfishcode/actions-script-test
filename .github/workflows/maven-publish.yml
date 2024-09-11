@@ -104,7 +104,6 @@ jobs:
     - name: Create Git Tag
       if: success()
       run: |        
-        mvn versions:set -DnewVersion=v${{ steps.extract-info.outputs.version }}
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git tag -a v${{ steps.extract-info.outputs.version }} -m "Release version v${{ steps.extract-info.outputs.version }}"
