@@ -45,11 +45,12 @@ jobs:
       run: |          # 读取 Pull Request 标题和版本号
         title="${{ steps.pr-title.outputs.pr_title }}"
         version="${{ steps.extract-version.outputs.version }}"
-
-        if [[ "${title,,}" =~ ^release-$version$ ]] || [[ "${title,,}" =~ ^release $version$ ]]; then
+        
+        # 转换为小写并进行条件判断
+        if [[ "${title,,}" =~ ^release-$version$ ]]; then
           echo "Pull Request title is valid."
         else
-          echo "Pull Request title must be in the format 'release-$version' or 'release $version'."
+          echo "Pull Request title must be in the format 'release-$version'."
           exit 1
         fi
 #
