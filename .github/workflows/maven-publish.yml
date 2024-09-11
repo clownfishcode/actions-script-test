@@ -55,9 +55,9 @@ jobs:
         artifactId="${{ steps.extract-info.outputs.artifactId }}"
         URL=https://repo1.maven.org/maven2/$(echo $groupId | tr . /)/${artifactId}/maven-metadata.xml
         echo $URL
-         # 使用 curl 的 --fail 和 -w 选项来处理 HTTP 错误码
+        # 使用 curl 的 --fail 和 -w 选项来处理 HTTP 错误码
         RESPONSE_CODE=$(curl -sSL --write-out '%{http_code}' --output /dev/null --fail-with-body "$URL")
-        
+        echo $RESPONSE_CODE
         if [ "$RESPONSE_CODE" == "200" ]; then
           # 文件存在，继续检查版本
           curl -sSL "$URL" | \
