@@ -41,6 +41,7 @@ jobs:
       id: extract-version
       run: |        
         version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "Pom Version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
 
 #    - name: Validate Pull Request Title
