@@ -24,7 +24,7 @@ jobs:
     - name: Set up Java environment
       uses: actions/setup-java@v1
       with:
-        java-version: 11
+        java-version: 17
 
     - name: Read Pull Request Title
       id: pr-title
@@ -32,10 +32,6 @@ jobs:
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
         echo "Pull Request Title: $title"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
-#        echo "::set-output name=pr_title::$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')"
-#        title=$(jq -r '.pull_request.title' $GITHUB_EVENT_PATH)
-#        echo "Pull Request Title: $title"
-#        echo "pr_title=$title" >> $GITHUB_OUTPUT
 
     - name: Extract version from pom.xml
       id: extract-version
@@ -44,19 +40,18 @@ jobs:
         echo "Pom Version: $version"
         echo "version=$version" >> $GITHUB_OUTPUT
 
-#    - name: Validate Pull Request Title
-#      run: |          # 读取 Pull Request 标题和版本号
-#        title="${{ steps.pr-title.outputs.pr_title }}"
-#        version="${{ steps.extract-version.outputs.version }}"
-#
-#
-#        # 验证 Pull Request 标题
-#        if [[ "$title" =~ ^release-$version$ ]]; then
-#          echo "Pull Request title is valid."
-#        else
-#          echo "Pull Request title must be in the format 'release-$version'."
-#          exit 1
-#        fi
+    - name: Validate Pull Request Title
+      run: |          # 读取 Pull Request 标题和版本号
+        title="${{ steps.pr-title.outputs.pr_title }}"
+        version="${{ steps.extract-version.outputs.version }}"
+
+        # 验证 Pull Request 标题
+        if [[ "${title,,}" =~ ^release-$version$ ]] || [[ "${title,,}" == ^release $version ]]; then
+          echo "Pull Request title is valid."
+        else
+          echo "Pull Request title must be in the format 'release-$version'."
+          exit 1
+        fi
 #
 #    - name: Set up Maven Central Repository
 #      uses: actions/setup-java@v4
