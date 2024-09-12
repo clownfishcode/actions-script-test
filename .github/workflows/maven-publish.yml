@@ -108,6 +108,8 @@ jobs:
         version: ${{ steps.extract-info.outputs.version }}
         message: ${{ steps.pr-info.outputs.body }}
         token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "${{ steps.pr-info.outputs.body }}"
 #    - name: Create Git Tag
 #      if: success()
 #      run: |
