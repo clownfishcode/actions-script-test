@@ -48,7 +48,7 @@ jobs:
 
       - name: show pr body
         run: |
-          echo ${{steps.pr-info.outputs.body}}
+            ${{steps.pr-info.outputs.body}}
 
 #    steps:
 #    - uses: actions/checkout@v4
