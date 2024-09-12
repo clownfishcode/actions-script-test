@@ -37,8 +37,8 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
     name: publish to maven central
+    if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
     permissions:
       contents: write
       packages: write
