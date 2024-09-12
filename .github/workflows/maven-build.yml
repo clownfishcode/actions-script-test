@@ -31,6 +31,9 @@ on:
       - '.all-contributorsrc'
 jobs:
   build:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
 
     steps:
