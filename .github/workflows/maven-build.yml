@@ -50,8 +50,10 @@ jobs:
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo $pr_body >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
-          echo ${{steps.pr-info.outputs.pr_body}}
+        
+
+      - name: show pr body
+        run: echo ${{steps.pr-info.outputs.pr_body}}
 
 #    steps:
 #    - uses: actions/checkout@v4
