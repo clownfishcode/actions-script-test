@@ -100,10 +100,16 @@ jobs:
 #        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     - name: Bump version and push tag
-      uses: laputansoft/github-tag-action@v4.6
+      id: tag_version
+      uses: mathieudutour/github-tag-action@v6.2
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ steps.package-version.outputs.version }}
+    - name: Create a GitHub release
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ steps.tag_version.outputs.new_tag }}
+        name: Release ${{ steps.tag_version.outputs.new_tag }}
+        body: ${{ steps.tag_version.outputs.changelog }}
 #      run: |
 #        git config --local user.email "action@github.com"
 #        git config --local user.name "GitHub Action"
