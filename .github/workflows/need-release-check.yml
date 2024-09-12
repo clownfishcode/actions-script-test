@@ -9,12 +9,12 @@ on:
 jobs:
   need-release-check:
     runs-on: ubuntu-latest
-    name: need-release-check
+    name: need release check job
     outputs:
       need_release: ${{ steps.check.outputs.need_release }}
     steps:
-      - name: check
-        id: check
+      - id: check
+        name: check
         run: |
           pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
           echo "PR Title: $pr_title"
