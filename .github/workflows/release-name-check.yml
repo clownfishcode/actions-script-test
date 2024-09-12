@@ -4,7 +4,7 @@ on:
   workflow_call:
     outputs:
       release_name_check_result:
-        value: ${{ steps.release_name_check.outputs.release_name_check }}
+        value: ${{ jobs.pre-check.outputs.release_name_check_result }}
 
 jobs:
   pre-check:
