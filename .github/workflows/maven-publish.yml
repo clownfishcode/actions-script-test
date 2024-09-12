@@ -16,7 +16,6 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -29,9 +28,7 @@ jobs:
         echo "Pull Request Title: $title"
         echo "Pull Request Body: $body"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
-        echo "body<<EOF" >> $GITHUB_OUTPUT
-        echo "$pr_body" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "body<<EOF"$'\n'"$pr_body"$'\n'EOF >> "$GITHUB_OUTPUT"
 
     - name: Extract info from pom.xml
       id: extract-info

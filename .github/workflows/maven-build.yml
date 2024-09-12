@@ -35,12 +35,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 8
-      uses: actions/setup-java@v4
-      with:
-        java-version: '8'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B clean package --file pom.xml
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Read Pull Request Info
+        id: pr-info
+        run: |
+          body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+          echo "PR Body: $body"
+          echo "body<<EOF"$'\n'"$body"$'\n'EOF >> "$GITHUB_OUTPUT"
+
+      - name: show pr body
+        run: |
+            echo "${{steps.pr-info.outputs.body}}"
+
+#    steps:
+#    - uses: actions/checkout@v4
+#    - name: Set up JDK 8
+#      uses: actions/setup-java@v4
+#      with:
+#        java-version: '8'
+#        distribution: 'temurin'
+#        cache: maven
+#    - name: Build with Maven
+#      run: mvn -B clean package --file pom.xml
