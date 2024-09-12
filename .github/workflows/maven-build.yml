@@ -51,7 +51,8 @@ jobs:
           echo $GITHUB_OUTPUT
 
       - name: show pr body
-        run: echo ${{steps.pr-info.outputs.pr_body}}
+        run: |
+          echo ${{steps.pr-info.outputs.pr_body}}
 
 #    steps:
 #    - uses: actions/checkout@v4
