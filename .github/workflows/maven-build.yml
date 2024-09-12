@@ -30,7 +30,13 @@ on:
       - '*.txt'
       - '.all-contributorsrc'
 jobs:
+  need-release:
+    uses: ./.github/workflows/need-release-check.yml
+    outputs:
+      need_release: ${{ jobs.need-release-check.outputs.need_release }}
+
   build:
+    needs: [need-release-check]
     permissions:
       contents: write
       packages: write
@@ -40,23 +46,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Need Release Check
-        uses: ./.github/workflows/need-release-check.yml
-        id: need_release_check
-        outputs:
-          need_release: ${{ jobs.need-release-check.outputs.need_release }}
-
       - name: Show Need Release Check Result
         run: |
-          echo "need_release=${{ jobs.need_release_check.outputs.need_release }}"
+          echo "need_release=${{ needs.need-release-check.outputs.need_release }}"
 
-      - name: Pre-Release Check
-        if: ${{  jobs.need_release_check.outputs.need_release == 'true' }}
-        uses: ./.github/workflows/pre-release.yml
-        id: pre_release
-        outputs:
-          release_name_check: ${{ jobs.pre-release-check.outputs.release_name_check }}
-
-      - name: Show Pre-Release Check Result
-        run: |
-          echo "release_name_check=${{ jobs.pre-release-check.outputs.release_name_check }}"
+#      - name: Pre-Release Check
+#        if: ${{  jobs.need_release_check.outputs.need_release == 'true' }}
+#        uses: ./.github/workflows/pre-release.yml
+#        id: pre_release
+#        outputs:
+#          release_name_check: ${{ jobs.pre-release-check.outputs.release_name_check }}
+#
+#      - name: Show Pre-Release Check Result
+#        run: |
+#          echo "release_name_check=${{ jobs.pre-release-check.outputs.release_name_check }}"
