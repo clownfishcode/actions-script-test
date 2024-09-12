@@ -31,7 +31,7 @@ on:
       - '.all-contributorsrc'
 jobs:
 
-  release-version-check:
+  release-name-check:
     uses: ./.github/workflows/pre-release.yml
 
   build:

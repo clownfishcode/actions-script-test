@@ -38,7 +38,7 @@ jobs:
 
       - name: Read Pull Request Info
         id: pr-info
-        if: ${{ need_release == 'true' }}
+        if: ${{ step.check-release-name.outputs.need_release == 'true' }}
         run: |
           title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
           echo "Pull Request Title: $title"
@@ -49,7 +49,7 @@ jobs:
 
       - name: Extract info from pom.xml
         id: extract-info
-        if: ${{ need_release == 'true' }}
+        if: ${{ step.check-release-name.outputs.need_release == 'true' }}
         run: |
           groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
           artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
@@ -63,7 +63,7 @@ jobs:
 
       - name: Check Maven Central Repository & Validate Pull Request Title
         id: check
-        if: ${{ need_release == 'true' }}
+        if: ${{ step.check-release-name.outputs.need_release == 'true' }}
         run: |
           version="${{ steps.extract-info.outputs.version }}"
           groupId="${{ steps.extract-info.outputs.groupId }}"

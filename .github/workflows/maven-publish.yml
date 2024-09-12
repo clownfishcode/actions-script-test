@@ -9,11 +9,11 @@ on:
 
 jobs:
 
-  release-version-check:
+  release-name-check:
     uses: ./.github/workflows/pre-release.yml
 
   publish:
-    needs: [release-version-check]
+    needs: [release-name-check]
     runs-on: ubuntu-latest
     if: ${{ needs.release-version-check.outputs.release_name_check == 'true' }}
     name: publish project
