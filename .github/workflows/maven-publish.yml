@@ -15,7 +15,7 @@ jobs:
   publish:
     needs: [pre-check]
     runs-on: ubuntu-latest
-    if: ${{ needs.steps.result.outputs.release_name_check_result == 'true' }}
+    if: ${{ needs.jobs.pre-check.outputs.release_name_check_result == 'true' }}
     name: publish to maven central
     permissions:
       contents: write
