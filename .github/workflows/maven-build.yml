@@ -45,10 +45,10 @@ jobs:
       - name: Read Pull Request Info
         id: pr-info
         run: |
-          pr_body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
-          echo "PR Body: $pr_body"
-          echo "pr_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$pr_body" >> $GITHUB_OUTPUT
+          body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+          echo "PR Body: $body"
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo $pr_body >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
           echo ${{steps.pr-info.outputs.pr_body}}
