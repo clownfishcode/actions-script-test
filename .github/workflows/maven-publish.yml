@@ -8,30 +8,20 @@ on:
     types: [closed]
 
 jobs:
-  pre-release:
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  need-release-check:
+    uses: ./.github/workflows/need-release-check.yml
 
-      - name: Pre-Release Check
-        id: pre_release_check
-        run: |
-          ./.github/scripts/need_release_check.sh
-          echo "need_release=$need_release" >> $GITHUB_OUTPUT
-
-      - name: Pre-Release Check
-        if: ${{ steps.pre_release_check.outputs.need_release == 'true' }}
-        run: |
-          echo "::error::Release name is not correct"
-          exit 1
+  release-version-check:
+    needs: [ need-release-check ]
+    if: ${{ needs.need-release-check.outputs.need_release == 'true' }}
+    uses: ./.github/workflows/pre-release.yml
 
   publish:
-    needs: [pre-check]
+    needs: [release-version-check]
     runs-on: ubuntu-latest
-    if: ${{ needs.jobs.pre-check.outputs.release_name_check_result == 'true' }}
-    name: publish to maven central
+    if: ${{ needs.release-version-check.outputs.release_name_check == 'true' }}
+    name: publish project
     permissions:
       contents: write
       packages: write
