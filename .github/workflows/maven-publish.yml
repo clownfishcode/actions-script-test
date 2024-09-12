@@ -28,7 +28,7 @@ jobs:
         echo "Pull Request Title: $title"
         echo "Pull Request Body: $body"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
-        echo "body<<EOF"$'\n'"$pr_body"$'\n'EOF >> "$GITHUB_OUTPUT"
+        echo "body<<EOF"$'\n'"$body"$'\n'EOF >> "$GITHUB_OUTPUT"
 
     - name: Extract info from pom.xml
       id: extract-info
@@ -106,7 +106,7 @@ jobs:
       uses: negz/create-tag@v1
       with:
         version: ${{ steps.extract-info.outputs.version }}
-        message: ${{ steps.pr-info.outputs.pr_body }}
+        message: ${{ steps.pr-info.outputs.body }}
         token: ${{ secrets.GITHUB_TOKEN }}
 #    - name: Create Git Tag
 #      if: success()
