@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Maven Build
+name: Build
 
 on:
   push:
@@ -30,12 +30,8 @@ on:
       - '*.txt'
       - '.all-contributorsrc'
 jobs:
-  need-release-check:
-    uses: ./.github/workflows/need-release-check.yml
 
-  release-version-check:
-    needs: [need-release-check]
-    if: ${{ needs.need-release-check.outputs.need_release == 'true' }}
+  release-name-check:
     uses: ./.github/workflows/pre-release.yml
 
   build:

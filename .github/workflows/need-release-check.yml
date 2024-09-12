@@ -1,4 +1,4 @@
-name: Check if release is needed
+name: Check PR Need Release
 
 on:
   workflow_call:
