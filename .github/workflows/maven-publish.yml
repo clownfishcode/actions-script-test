@@ -8,9 +8,24 @@ on:
     types: [closed]
 
 jobs:
-  pre-check:
-    uses: ./.github/workflows/release-name-check.yml
+  pre-release:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Pre-Release Check
+        id: pre_release_check
+        run: |
+          ./.github/scripts/need_release_check.sh
+          echo "need_release=$need_release" >> $GITHUB_OUTPUT
+
+      - name: Pre-Release Check
+        if: ${{ steps.pre_release_check.outputs.need_release == 'true' }}
+        run: |
+          echo "::error::Release name is not correct"
+          exit 1
 
   publish:
     needs: [pre-check]

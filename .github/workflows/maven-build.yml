@@ -29,47 +29,20 @@ on:
       - '*.adoc'
       - '*.txt'
       - '.all-contributorsrc'
-
-
 jobs:
-  pre-check:
-    uses: ./.github/workflows/release-name-check.yml
-
   build:
-    needs: [pre-check]
     runs-on: ubuntu-latest
-    steps:
-      - name: show check output
-        run: |
-          echo ${{ needs.jobs.pre-check.outputs.release_name_check_result }}
 
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 8
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: 'temurin'
-          cache: maven
-      - name: Build with Maven
-        run: mvn -B clean package --file pom.xml
+      - name: Pre-Release Check
+        id: pre_release_check
+        run: |
+          ./.github/scripts/need_release_check.sh
+          echo "need_release=$need_release" >> $GITHUB_OUTPUT
 
-      - name: Check Pull Request Title
-        id: check_title
-        run: |          # 获取 Pull Request 的标题
-          pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
-          echo "PR Title: $pr_title"
-          
-          # 转换为小写
-          pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
-          echo "PR Title (Lowercase): $pr_title_lower"
-          
-          # 判断是否以 'release-' 开头
-          if [[ $pr_title_lower == release-* ]]; then
-            echo "Title starts with 'release-' (case-insensitive)"
-            echo "starts_with_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "Title does not start with 'release-' (case-insensitive)"
-            echo "starts_with_release=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Show Pre-Release Check Result
+        run: |
+          echo "need_release=${{ steps.pre_release_check.outputs.need_release }}"
