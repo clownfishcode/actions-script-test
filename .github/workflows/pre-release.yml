@@ -3,40 +3,22 @@ name: Release Name Check Workflow
 on:
   workflow_call:
     outputs:
-      release_name_check_result:
-        value: ${{ jobs.pre-check.outputs.release_name_check_result }}
+      release_name_check:
+        value: ${{ jobs.pre-release-check.outputs.release_name_check }}
+
+
 
 jobs:
-  pre-check:
+  pre-release-check:
     runs-on: ubuntu-latest
     name: check pull request is release
     outputs:
-      release_name_check_result: ${{ steps.result.outputs.release_name_check_result }}
+      release_name_check: ${{ steps.check.outputs.release_name_check }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Check Pull Request Title
-        id: check_title
-        run: |          # 获取 Pull Request 的标题
-          pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
-          echo "PR Title: $pr_title"
-
-          # 转换为小写
-          pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
-          echo "PR Title (Lowercase): $pr_title_lower"
-
-          # 判断是否以 'release-' 开头
-          if [[ $pr_title_lower == release-* ]]; then
-            echo "Title starts with 'release-' (case-insensitive)"
-            echo "starts_with_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "Title does not start with 'release-' (case-insensitive)"
-            echo "starts_with_release=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Read Pull Request Info
-        if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
         id: pr-info
         run: |
           title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
@@ -47,7 +29,6 @@ jobs:
           echo "body<<EOF"$'\n'"$body"$'\n'EOF >> "$GITHUB_OUTPUT"
 
       - name: Extract info from pom.xml
-        if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
         id: extract-info
         run: |
           groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
@@ -60,9 +41,8 @@ jobs:
           echo "artifactId=$artifactId" >> $GITHUB_OUTPUT
           echo "groupId=$groupId" >> $GITHUB_OUTPUT
 
-      - name: Check Maven Central Repository
-        if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
-        id: check-maven-central
+      - name: Check Maven Central Repository & Validate Pull Request Title
+        id: check
         run: |
           version="${{ steps.extract-info.outputs.version }}"
           groupId="${{ steps.extract-info.outputs.groupId }}"
@@ -79,20 +59,20 @@ jobs:
             RESPONSE=$(curl -sSL "$URL")
             if echo "$RESPONSE" | grep "<version>$version</version>" > /dev/null; then
               echo "Version $version exists in Maven Central."
-              exit 1
+              echo "release_name_check=false" >> $GITHUB_OUTPUT
             else
               echo "Version $version does not exist in Maven Central."
+              echo "release_name_check=true" >> $GITHUB_OUTPUT
             fi
           elif [ "$RESPONSE_CODE" == "404" ]; then
             echo "The metadata file for $groupId:$artifactId does not exist in Maven Central."
+            echo "release_name_check=true" >> $GITHUB_OUTPUT
           else
             echo "An unexpected error occurred while checking the metadata file for $groupId:$artifactId."
+            echo "release_name_check=true" >> $GITHUB_OUTPUT
           fi
-
-      - name: Validate Pull Request Title
-        id: validate-title
-        if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
-        run: |          # 读取 Pull Request 标题和版本号
+               
+          # 检查 PR 标题
           title="${{ steps.pr-info.outputs.title }}"
           version="${{ steps.extract-info.outputs.version }}"
           echo "Pull Request Title: $title"
@@ -100,20 +80,9 @@ jobs:
           # 转换为小写并进行条件判断
           if [[ "${title,,}" =~ ^release-$version$ ]]; then
             echo "Pull Request title is valid."
+            echo "release_name_check=true" >> $GITHUB_OUTPUT
           else
             echo "Pull Request title must be in the format 'release-$version'."
-            exit 1
-          fi
-
-      - name: Set Result
-        id: result
-        run: |
-          if [ ${{ steps.check_title.outputs.starts_with_release }} == 'true' ]; then
-            echo "Release name check passed."
-            echo "release_name_check_result=true" >> $GITHUB_OUTPUT
-          else
-            echo "Release name check failed."
-            echo "release_name_check_result=false" >> $GITHUB_OUTPUT
-            exit 1
+            echo "release_name_check=false" >> $GITHUB_OUTPUT
           fi
           

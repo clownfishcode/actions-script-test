@@ -1,0 +1,33 @@
+name: Check if release is needed
+
+on:
+  workflow_call:
+    outputs:
+      need_release:
+        value: ${{ jobs.need-release-check.outputs.need_release }}
+
+jobs:
+  need-release-check:
+    runs-on: ubuntu-latest
+    name: need release check job
+    outputs:
+      need_release: ${{ steps.check.outputs.need_release }}
+    steps:
+      - id: check
+        name: check
+        run: |
+          pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
+          echo "PR Title: $pr_title"
+          
+          # 转换为小写
+            pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
+          echo "PR Title (Lowercase): $pr_title_lower"
+          
+          # 判断是否以 'release-' 开头
+            if [[ $pr_title_lower == release-* ]]; then
+            echo "Title starts with 'release-' (case-insensitive)"
+            echo "need_release=true" >> $GITHUB_OUTPUT
+            else
+            echo "Title does not start with 'release-' (case-insensitive)"
+            echo "need_release=false" >> $GITHUB_OUTPUT
+            fi

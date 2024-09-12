@@ -29,8 +29,15 @@ on:
       - '*.adoc'
       - '*.txt'
       - '.all-contributorsrc'
-
 jobs:
+  need-release-check:
+    uses: ./.github/workflows/need-release-check.yml
+
+  release-version-check:
+    needs: [need-release-check]
+    if: ${{ needs.need-release-check.outputs.need_release == 'true' }}
+    uses: ./.github/workflows/pre-release.yml
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -44,26 +51,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
-        run: mvn -B clean package --file pom.xml
-
-      - name: Check Pull Request Title
-        id: check_title
-        run: |          # 获取 Pull Request 的标题
-          pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
-          echo "PR Title: $pr_title"
-          
-          # 转换为小写
-          pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
-          echo "PR Title (Lowercase): $pr_title_lower"
-          
-          # 判断是否以 'release-' 开头
-          if [[ $pr_title_lower == release-* ]]; then
-            echo "Title starts with 'release-' (case-insensitive)"
-            echo "starts_with_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "Title does not start with 'release-' (case-insensitive)"
-            echo "starts_with_release=false" >> $GITHUB_OUTPUT
-          fi
-
-  pre-check:
-    uses: ./.github/workflows/release-name-check.yml
+        run: mvn -B clean package
