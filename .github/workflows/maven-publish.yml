@@ -102,14 +102,18 @@ jobs:
 #        MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
 #        MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 #        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+
+    - name: show pr body
+      run: |
+        echo "${{steps.pr-info.outputs.body}}"
+
     - name: Create Tag
       uses: negz/create-tag@v1
       with:
         version: ${{ steps.extract-info.outputs.version }}
         message: ${{ steps.pr-info.outputs.body }}
         token: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        echo "${{ steps.pr-info.outputs.body }}"
 #    - name: Create Git Tag
 #      if: success()
 #      run: |
