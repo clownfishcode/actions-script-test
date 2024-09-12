@@ -40,12 +40,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Pre-Release Check
-        id: pre_release_check
+      - name: Need Release Check
+        uses: ./.github/workflows/need-release-check.yml
+        id: need_release_check
+        outputs:
+          need_release: ${{ jobs.need-release-check.outputs.need_release }}
+
+      - name: Show Need Release Check Result
         run: |
-          ./.github/scripts/need_release_check.sh
-          echo "need_release=$need_release" >> $GITHUB_OUTPUT
+          echo "need_release=${{ jobs.need_release_check.outputs.need_release }}"
+
+      - name: Pre-Release Check
+        if: ${{  jobs.need_release_check.outputs.need_release == 'true' }}
+        uses: ./.github/workflows/pre-release.yml
+        id: pre_release
+        outputs:
+          release_name_check: ${{ jobs.pre-release-check.outputs.release_name_check }}
 
       - name: Show Pre-Release Check Result
         run: |
-          echo "need_release=${{ steps.pre_release_check.outputs.need_release }}"
+          echo "release_name_check=${{ jobs.pre-release-check.outputs.release_name_check }}"
