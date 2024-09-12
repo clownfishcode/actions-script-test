@@ -10,18 +10,36 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.pull_request.title, 'release-')
     name: publish to maven central
     permissions:
       contents: write
       packages: write
 
     steps:
-
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Check Pull Request Title
+      id: check_title
+      run: |          # 获取 Pull Request 的标题
+        pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
+        echo "PR Title: $pr_title"
+        
+        # 转换为小写
+        pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
+        echo "PR Title (Lowercase): $pr_title_lower"
+        
+        # 判断是否以 'release-' 开头
+        if [[ $pr_title_lower == release-* ]]; then
+          echo "Title starts with 'release-' (case-insensitive)"
+          echo "starts_with_release=true" >> $GITHUB_OUTPUT
+        else
+          echo "Title does not start with 'release-' (case-insensitive)"
+          echo "starts_with_release=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Read Pull Request Info
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       id: pr-info
       run: |
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
@@ -32,6 +50,7 @@ jobs:
         echo "body<<EOF"$'\n'"$body"$'\n'EOF >> "$GITHUB_OUTPUT"
 
     - name: Extract info from pom.xml
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       id: extract-info
       run: |        
         groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
@@ -45,6 +64,7 @@ jobs:
         echo "groupId=$groupId" >> $GITHUB_OUTPUT
 
     - name: Check Maven Central Repository
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       id: check-maven-central
       run: |
         version="${{ steps.extract-info.outputs.version }}"
@@ -73,6 +93,7 @@ jobs:
         fi
 
     - name: Validate Pull Request Title
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       run: |          # 读取 Pull Request 标题和版本号
         title="${{ steps.pr-info.outputs.title }}"
         version="${{ steps.extract-info.outputs.version }}"
@@ -87,6 +108,7 @@ jobs:
         fi
 
     - name: Set up Maven Central Repository
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       uses: actions/setup-java@v4
       with: # running setup-java again overwrites the settings.xml
         java-version: '8'
@@ -98,6 +120,7 @@ jobs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
 
     - name: Publish to Apache Maven Central
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       run: mvn -B deploy
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
@@ -105,6 +128,7 @@ jobs:
         MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     - name: Create Tag
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       uses: negz/create-tag@v1
       with:
         version: v${{ steps.extract-info.outputs.version }}
@@ -112,6 +136,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
+      if: ${{ steps.check_title.outputs.starts_with_release == 'true' }}
       id: create_release
       uses: actions/create-release@v1
       env:
