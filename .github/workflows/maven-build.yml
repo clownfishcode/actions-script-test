@@ -47,10 +47,11 @@ jobs:
         run: |
           body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
           echo "PR Body: $body"
-          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo 'body<<EOF' >> $GITHUB_OUTPUT
           echo $pr_body >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
         
+          echo $GITHUB_OUTPUT
 
       - name: show pr body
         run: echo ${{steps.pr-info.outputs.pr_body}}
