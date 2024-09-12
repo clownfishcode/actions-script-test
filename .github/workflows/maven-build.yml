@@ -39,12 +39,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Read Pull Request Info
         id: pr-info
         run: |
-          body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
-          echo "pr_title=$title" >> $GITHUB_OUTPUT
-          echo "body<<EOF" >> $GITHUB_OUTPUT
+          pr_body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+          echo "PR Body: $pr_body"
+          echo "pr_body<<EOF" >> $GITHUB_OUTPUT
           echo "$pr_body" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
