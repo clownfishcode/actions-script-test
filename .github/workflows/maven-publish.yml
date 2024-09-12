@@ -21,12 +21,15 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Read Pull Request Title
-      id: pr-title
+    - name: Read Pull Request Info
+      id: pr-info
       run: |
         title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
+        body=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
         echo "Pull Request Title: $title"
+        echo "Pull Request Body: $body"
         echo "pr_title=$title" >> $GITHUB_OUTPUT
+        echo "pr_body=$body" >> $GITHUB_OUTPUT
 
     - name: Extract info from pom.xml
       id: extract-info
@@ -104,7 +107,7 @@ jobs:
       uses: negz/create-tag@v1
       with:
         version: ${{ steps.extract-info.outputs.version }}
-        message: $(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+        message: ${{ steps.pr-info.outputs.body }}
         token: ${{ secrets.GITHUB_TOKEN }}
 #    - name: Create Git Tag
 #      if: success()
