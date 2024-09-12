@@ -15,7 +15,7 @@ jobs:
   publish:
     needs: [release-name-check]
     runs-on: ubuntu-latest
-    if: ${{ needs.release-version-check.outputs.release_name_check == 'true' }}
+    if: ${{ needs.release-name-check.outputs.release_name_check == 'true' }}
     name: publish project
     permissions:
       contents: write
