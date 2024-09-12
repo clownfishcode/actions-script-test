@@ -30,10 +30,19 @@ on:
       - '*.txt'
       - '.all-contributorsrc'
 
+
 jobs:
+  pre-check:
+    uses: ./.github/workflows/release-name-check.yml
+
   build:
+    needs: [pre-check]
     runs-on: ubuntu-latest
     steps:
+      - name: show check output
+        run: |
+          echo ${{ needs.jobs.pre-check.outputs.release_name_check_result }}
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -64,6 +73,3 @@ jobs:
             echo "Title does not start with 'release-' (case-insensitive)"
             echo "starts_with_release=false" >> $GITHUB_OUTPUT
           fi
-
-  pre-check:
-    uses: ./.github/workflows/release-name-check.yml
