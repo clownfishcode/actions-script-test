@@ -16,8 +16,6 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v4
-
     - name: Checkout Repository
       uses: actions/checkout@v4
 
@@ -102,16 +100,29 @@ jobs:
 #        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     - name: Bump version and push tag
-      id: tag_version
-      uses: mathieudutour/github-tag-action@v6.2
+      uses: laputansoft/github-tag-action@v4.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Create a GitHub release
-      uses: ncipollo/release-action@v1
-      with:
-        tag: ${{ steps.tag_version.outputs.new_tag }}
-        name: Release ${{ steps.tag_version.outputs.new_tag }}
-        body: ${{ steps.tag_version.outputs.changelog }}
+        tag: ${{ steps.package-version.outputs.version }}
+#      run: |
+#        git config --local user.email "action@github.com"
+#        git config --local user.name "GitHub Action"
+#        git tag -a v${{ steps.extract-info.outputs.version }} -m "Release version v${{ steps.extract-info.outputs.version }}"
+#        git push origin v${{ steps.extract-info.outputs.version }}
+
+#    - name: Create Release
+#      if: success()
+#      id: create-release
+#      uses: softprops/action-gh-release@v2
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        tag_name: v${{ steps.extract-info.outputs.version }}
+#        name: Release v${{ steps.extract-info.outputs.version }}
+#        body: |          ## Changelog
+#          $(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.body')
+#        draft: false
+#        prerelease: false
 
 
 
