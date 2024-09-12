@@ -1,11 +1,10 @@
-name: Release Name Check Workflow
+name: Check PR Name Enable Release
 
 on:
   workflow_call:
     outputs:
       release_name_check:
         value: ${{ jobs.pre-release-check.outputs.release_name_check }}
-
 
 
 jobs:
@@ -15,11 +14,31 @@ jobs:
     outputs:
       release_name_check: ${{ steps.check.outputs.release_name_check }}
     steps:
+      - id: check-release-name
+        name: Check Release Name
+        run: |
+          pr_title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
+          echo "PR Title: $pr_title"
+
+          # 转换为小写
+            pr_title_lower=$(echo "$pr_title" | tr '[:upper:]' '[:lower:]')
+          echo "PR Title (Lowercase): $pr_title_lower"
+
+          # 判断是否以 'release-' 开头
+            if [[ $pr_title_lower == release-* ]]; then
+              echo "Title starts with 'release-' (case-insensitive)"
+              need_release=true
+            else
+              echo "Title does not start with 'release-' (case-insensitive)"
+              need_release=false
+            fi
+            echo "need_release=$need_release" >> $GITHUB_OUTPUT
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Read Pull Request Info
         id: pr-info
+        if: ${{ need_release == 'true' }}
         run: |
           title=$(cat $GITHUB_EVENT_PATH | jq -r '.pull_request.title')
           echo "Pull Request Title: $title"
@@ -30,6 +49,7 @@ jobs:
 
       - name: Extract info from pom.xml
         id: extract-info
+        if: ${{ need_release == 'true' }}
         run: |
           groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
           artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
@@ -43,6 +63,7 @@ jobs:
 
       - name: Check Maven Central Repository & Validate Pull Request Title
         id: check
+        if: ${{ need_release == 'true' }}
         run: |
           version="${{ steps.extract-info.outputs.version }}"
           groupId="${{ steps.extract-info.outputs.groupId }}"
